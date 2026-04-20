@@ -1,0 +1,392 @@
+{
+  "name": "aimfox webhooks to breakcold",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "aimfox-to-breakcold2",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8a9ebc9f-42c5-409d-a4ab-f6dcb6ff39a1",
+      "name": "Webhook",
+      "webhookId": "<REDACTED_WEBHOOK_ID>"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e8c5b8b5-e6ee-4b47-89e8-cf964d4cbe31",
+              "name": "event_type",
+              "value": "={{ $json.body.event_type }}",
+              "type": "string"
+            },
+            {
+              "id": "27059196-05ad-458f-847a-d3cf5f06da16",
+              "name": "campaign name",
+              "value": "={{ $json.body.event.campaign.name }}",
+              "type": "string"
+            },
+            {
+              "id": "7542ef6f-3c3c-425a-9c78-6daf3d3ae3f0",
+              "name": "flow_type",
+              "value": "={{ $json.body.event.flow_type }}",
+              "type": "string"
+            },
+            {
+              "id": "df955133-4e28-4b0c-9119-f03c004e66dd",
+              "name": "message",
+              "value": "={{ $json.body.event.message }}",
+              "type": "string"
+            },
+            {
+              "id": "65362e35-35e1-4e8a-ac7d-9adebf720bb8",
+              "name": "public_identifier",
+              "value": "={{ $json.body.event.target.public_identifier }}",
+              "type": "string"
+            },
+            {
+              "id": "21e02f0b-6538-400a-8683-00b4ed51cb99",
+              "name": "first_name",
+              "value": "={{ $json.body.event.target.first_name }}",
+              "type": "string"
+            },
+            {
+              "id": "808624ea-2207-4121-a6f1-6ee5f219d10c",
+              "name": "last_name",
+              "value": "={{ $json.body.event.target.last_name }}",
+              "type": "string"
+            },
+            {
+              "id": "4cc21542-9550-4e12-b928-d4da98b5478d",
+              "name": "email",
+              "value": "={{ $json.body.event.target.email }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "607e8ce9-1647-43a0-9f9b-acec9fd4e9af",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst output = items.map(item => {\n \n  const data = item.json; \n  const linkedinUrl = data.public_identifier \n    ? `https://www.linkedin.com/in/${data.public_identifier}`\n    : null;\n\n  return {\n    json: {\n      ...data,\n      linkedin_url: linkedinUrl\n    }\n  };\n});\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "84b9eb94-5426-40af-8041-52f2f5bbbc3a",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.breakcold.com/rest/lead",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-KEY",
+              "value": "breakcold-usr-<BREAKCOLD_API_KEY>"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"linkedin_url\": \"{{ $json.linkedin_url }}\",\n  \"email\": \"{{ $json['email'] }}\",\n  \"first_name\": \"{{ $json['first_name'] }}\",\n  \"last_name\": \"{{ $json['last_name'] }}\",\n  \"status\": [\n    \"a9ead3cb-6ae5-4f9c-a9c0-f3cd557d3915\"\n  ],\n  \"is_company\": false,\n  \"is_contract\": false,\n  \"create_company_if_not_exists\": true,\n  \"auto_assign_owner\": true\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        608,
+        0
+      ],
+      "id": "e3f57d5d-2050-40fa-9110-91b12e9663d1",
+      "name": "Breakcold connection2"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Breakcold connection2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "<REDACTED_N8N_HOST>",
+            "user-agent": "got (https://github.com/sindresorhus/got)",
+            "content-length": "3529",
+            "accept-encoding": "gzip, br",
+            "baggage": "sentry-environment=production,sentry-public_key=d2127ed46413114966b7f581cccbf5df,sentry-trace_id=1a626d0cb102b558626fe9921e4f959a,sentry-sampled=false",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "<REDACTED_IP>",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "RS",
+            "cf-ray": "<REDACTED>",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "sentry-trace": "1a626d0cb102b558626fe9921e4f959a-9b4db51f073cf642",
+            "x-forwarded-for": "<REDACTED_IP>",
+            "x-forwarded-host": "<REDACTED_N8N_HOST>",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "<REDACTED>",
+            "x-is-trusted": "yes",
+            "x-real-ip": "<REDACTED_IP>"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "id": "1d4cd8da-19d0-432e-bc82-4a25f3147987",
+            "event_type": "reply",
+            "event": {
+              "target_urn": "ACoAAB8sqkoBSwdToFeXBUYWTX5m11EjY6uL3pc",
+              "prev_state": "done",
+              "state": "done",
+              "transition": "reply",
+              "flow_id": "0df7c605-6b76-49bc-8862-ce3dc10bb30c",
+              "flow_type": "PRIMARY_MESSAGE",
+              "template_id": "337211f1-4fba-475a-881a-bd864865d689",
+              "metadata": {
+                "declined": false
+              },
+              "message": "Thanks Ian.",
+              "timestamp": "2026-01-06T05:34:34.958Z",
+              "account": {
+                "id": 787866557,
+                "urn": "ACoAAC71470BAJV60_3C9yEz6hyK4zQxFmQLT9M",
+                "public_identifier": "<REDACTED_LINKEDIN_ID>",
+                "first_name": "<REDACTED_NAME> ",
+                "last_name": "<REDACTED_NAME>",
+                "email": "ian.jason@<REDACTED_EMAIL>",
+                "picture_url": "https://cdn.constel.co/linkedin-profile/787866557.jpg"
+              },
+              "target": {
+                "id": 523020874,
+                "urn": "ACoAAB8sqkoBSwdToFeXBUYWTX5m11EjY6uL3pc",
+                "public_identifier": "<REDACTED_LINKEDIN_ID>",
+                "first_name": "<REDACTED_NAME>",
+                "last_name": "<REDACTED_NAME>",
+                "email": "<REDACTED_EMAIL>",
+                "picture_url": "https://cdn.constel.co/linkedin-profile/ACoAAB8sqkoBSwdToFeXBUYWTX5m11EjY6uL3pc.jpg"
+              },
+              "campaign": {
+                "id": "f0f1e0b4-36c7-4b7e-9195-089c9b02aec3",
+                "state": "DONE",
+                "schedule": {
+                  "timezone": {
+                    "name": null,
+                    "offset": null
+                  },
+                  "monday": {
+                    "intervals": [
+                      {
+                        "start": 9,
+                        "end": 22
+                      }
+                    ]
+                  },
+                  "tuesday": {
+                    "intervals": [
+                      {
+                        "start": 9,
+                        "end": 23
+                      }
+                    ]
+                  },
+                  "wednesday": {
+                    "intervals": [
+                      {
+                        "start": 9,
+                        "end": 17
+                      }
+                    ]
+                  },
+                  "thursday": {
+                    "intervals": [
+                      {
+                        "start": 9,
+                        "end": 17
+                      }
+                    ]
+                  },
+                  "friday": {
+                    "intervals": [
+                      {
+                        "start": 9,
+                        "end": 17
+                      }
+                    ]
+                  },
+                  "saturday": {
+                    "intervals": [
+                      {
+                        "start": 9,
+                        "end": 17
+                      }
+                    ]
+                  },
+                  "sunday": {
+                    "intervals": [
+                      {
+                        "start": 9,
+                        "end": 17
+                      }
+                    ]
+                  }
+                },
+                "name": "Test",
+                "type": "list",
+                "outreach_type": "drip",
+                "inmail_optimization": false,
+                "audience_size": 10000,
+                "target_count": 1,
+                "created_at": 1767619131948,
+                "completion": 1,
+                "owners": [
+                  "787866557"
+                ],
+                "custom_variable_keys": [
+                  {
+                    "name": "NAME",
+                    "value": "{{CUSTOM.NAME}}"
+                  }
+                ],
+                "autolabel_ids": null,
+                "start_date": null,
+                "labels": [],
+                "crm_type": null,
+                "uses_connection_note": false,
+                "flows": [
+                  {
+                    "id": "40554d80-88d6-414b-b193-727016cd46b6",
+                    "translate": false,
+                    "source_language": null,
+                    "is_manual_language": false,
+                    "type": "INMAIL_OPTIMIZATION",
+                    "name": "",
+                    "template": null,
+                    "flow_message_templates": [],
+                    "withdraw_delay": 604800000,
+                    "endorse_enabled": false,
+                    "endorse_delay": null,
+                    "like_enabled": false,
+                    "like_delay": null,
+                    "like_type": "LIKE"
+                  },
+                  {
+                    "id": "3114e701-d85b-4e1c-a6c5-3033e9ad1c8a",
+                    "translate": false,
+                    "source_language": null,
+                    "is_manual_language": false,
+                    "type": "CONNECT_OPTIMIZATION",
+                    "name": "",
+                    "template": null,
+                    "flow_message_templates": [],
+                    "withdraw_delay": 604800000,
+                    "endorse_enabled": false,
+                    "endorse_delay": null,
+                    "like_enabled": false,
+                    "like_delay": null,
+                    "like_type": "LIKE"
+                  },
+                  {
+                    "id": "0df7c605-6b76-49bc-8862-ce3dc10bb30c",
+                    "translate": false,
+                    "source_language": "en",
+                    "is_manual_language": false,
+                    "type": "PRIMARY_MESSAGE",
+                    "name": "Message Flow A",
+                    "template": null,
+                    "flow_message_templates": [
+                      {
+                        "type": "MESSAGE_TEMPLATE",
+                        "message": "Hi {first name},\n\nFollowing up on my last note. Teams like yours often tell us that keeping API tests, docs, and environments aligned becomes harder as services grow. At Postman, we’ve seen platform teams reduce manual checks and speed up releases by standardizing how APIs are tested and documented across teams.   \n\nhttps://youtu.be/yc4qJK5m_cA?si=wRzOt5_PhaJ2lHv2   \n\nCurious if this is something your team is actively working on right now.\n\nBest, \nIan",
+                        "edited": false,
+                        "original_id": "337211f1-4fba-475a-881a-bd864865d689",
+                        "delay": 0,
+                        "ai_descriptors": {},
+                        "attachments": []
+                      }
+                    ],
+                    "withdraw_delay": 604800000,
+                    "endorse_enabled": false,
+                    "endorse_delay": null,
+                    "like_enabled": false,
+                    "like_delay": null,
+                    "like_type": "LIKE"
+                  }
+                ]
+              }
+            },
+            "workspace": {
+              "id": "30af53e0-719c-4e01-ba9f-c98db9ede2ee",
+              "name": "Hubcredo",
+              "created_at": 1754287932
+            },
+            "timestamp": "2026-01-06T05:34:34.958Z"
+          },
+          "webhookUrl": "https://<REDACTED_N8N_HOST>/webhook-test/57585690-f44d-4201-86f6-8b7cc49ec583",
+          "executionMode": "test"
+        }
+      }
+    ]
+  },
+  "triggerCount": 1,
+  "meta": null
+}
